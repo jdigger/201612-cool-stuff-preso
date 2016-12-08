@@ -1,0 +1,577 @@
+= 2016-12 Cool Stuff
+Jim Moore
+:twitter: @jdiggerj
+:!sectids:
+:imagesdir: images
+:linkattrs:
+:icons: font
+:imagesoutdir: ../public/images
+:source-highlighter: pygments
+
+Some of the interesting things I've been playing with lately
+
+[.smaller]
+--
+Created by link:https://github.com/jdigger/[Jim Moore]
+
+https://keybase.io/jmoore[keybase.io/jmoore] / http://twitter.com/jdiggerj[@jdiggerj]
+--
+
+++++
+<br/><br/><div class="content" style="display: flex; text-align: center;"><p style="font-size: 0.6em"><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">2016-12 Cool Stuff</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Jim J. Moore</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.<br />Presentation source at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/jdigger/201612-cool-stuff-preso" rel="dct:source">https://github.com/jdigger/201612-cool-stuff-preso</a></p></div>
+++++
+
+== Agenda
+
+[.toc]
+. Git Tips
+. Version Controlled OS
+. Spring Boot
+. JHipster
+. Modern Continuous Integration
+
+
+== Git Tips
+
+== !Git Background
+
+Don't forget about https://jdigger.github.io/git-fundimentals-preso/[Git Made Simple]
+
+image::Git_Made_Simple.png[height=660]
+
+== git config --global push.default current
+
+https://git-scm.com/docs/git-config#git-config-pushdefault[The docs.]
+
+[source,bash]
+--
+$ git checkout mybranch
+$ git push    # git push origin HEAD:mybranch
+--
+
+This differs from `matching` and `simple` (the pre-2.0 and post-2.0 defaults, respectively) in that it only works on the current branch, not across all local branches.
+
+== git config --global alias.pf ...
+
+[source,bash]
+--
+[alias]
+  pf = "!git config --get branch.$(git symbolic-ref
+        --short HEAD).merge > /dev/null && git push
+        --force-with-lease || git push --force-with-lease -u"
+--
+
+[.smaller]
+(If you copy & paste into you `~/.gitconfig` you need to remove the newlines used here for formatting)
+
+Runs `"git push --force-with-lease"` with https://git-scm.com/docs/git-push#git-push--u[the `"-u"` flag to set the tracking branch], depending on if it has already been set.
+
+== --force-with-lease
+
+https://git-scm.com/docs/git-push#git-push---no-force-with-lease[The docs for --force-with-lease]
+
+Essentially does "`optimistic locking`" on the remote branch. Checks that the rev hasn't changed since the last time you did a `"git fetch"`.
+
+If they match, acts as `"git push --force"` because it assumes you've already done any needed reconciliation. If the revs don't match exactly it fails.
+
+[.smaller]
+https://developer.atlassian.com/blog/2015/04/force-with-lease/[Linked is a great post with much more information.]
+
+== git config --global branch.autoSetupRebase always
+
+https://git-scm.com/docs/git-config#git-config-branchautoSetupRebase[The docs.]
+
+When the upstream branch is set, the `"branch.<name>.rebase true"` config is also set.
+
+What that effectively means is that the default behavior for `"git pull"` is to do a rebase instead of a merge.
+
+== What That Looks Like
+
+[source,bash]
+--
+$ git checkout -b mybranch
+Switched to a new branch 'mybranch'
+
+$ cat .git/config
+[remote "origin"]
+	url = https://github.com/jdigger/201612-cool-stuff-preso.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+	rebase = true
+--
+
+== !Git Workflow
+
+[source,bash]
+--
+$ git pf
+To https://github.com/jdigger/201612-cool-stuff-preso.git
+ * [new branch]      mybranch -> mybranch
+Branch mybranch set up to track remote branch mybranch from
+origin by rebasing.
+
+$ cat .git/config
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+	rebase = true
+[branch "mybranch"]
+	remote = origin
+	merge = refs/heads/mybranch
+	rebase = true
+--
+
+== Git Workflow Implications
+
+* Using `"git pull"` and `"git pf"` you can *safely* have your nice linear history even when doing squashing and other advanced features.
+** The caveats about rewriting history of published integration branches applies, but it's no worse than when done with a merge.
+* Of course you want to do `"git pull && git rebase origin/master"` on a regular basis.
+
+== Making "`Green to Green`" Development Easier
+
+If you're the kind person that does TDD and likes to "`checkpoint`" your work every time you see The Green Bar...
+
+image::http://i.giphy.com/6gh9vOu0qbQmk.gif[]
+
+== git config --global alias.fixup ...
+
+[source,bash]
+--
+[alias]
+  fixup = "!sh -c 'git add -A &&
+           git commit -m \"fixup! $(git log
+           -1 --format='\\''%s'\\'' $@)\"' -"
+--
+
+[.smaller]
+(If you copy & paste into you `~/.gitconfig` you need to remove the newlines used here for formatting)
+
+https://jdigger.github.io/git-fundimentals-preso/#35[Adds any changes made to the index] and commits them with the same commit summary message as the prior commit, prepended with "fixup! "
+
+That becomes much more useful when used in conjunction with...
+
+== git config --global rebase.autosquash true
+
+https://git-scm.com/docs/git-rebase#git-rebase---autosquash[The docs.]
+
+Adds `"--autosquash"` to any `"git rebase -i"` command.
+
+== What That Looks Like
+
+[source,bash]
+--
+$ git commit -am "Build out Git Workflow section"
+[mybranch 8602f88] Build out Git Workflow section
+ 1 file changed, 38 insertions(+)
+
+$ # changes made
+$ git fixup
+[mybranch 09931f2] fixup! Build out Git Workflow section
+ 1 file changed, 10 insertions(+)
+
+$ # changes made
+$ git fixup
+[mybranch 9640c0f] fixup! fixup! Build out Git Workflow section
+ 1 file changed, 7 insertions(+)
+--
+
+== !Git Workflow
+
+[source,bash]
+--
+$ git rebase -i
+--
+
+[source,bash]
+--
+pick  8602f88 Build out Git Workflow section
+fixup 09931f2 fixup! Build out Git Workflow section
+fixup 9640c0f fixup! fixup! Build out Git Workflow section
+
+# Rebase d88acf0..9640c0f onto d88acf0 (4 commands)
+#
+# Commands:
+# p, pick = use commit
+# s, squash = use commit, but meld into previous commit
+# f, fixup = like "squash", but discard this commit's log message
+--
+
+== !Always Proof-Read Your Commits
+
+If you do the `"git fixup"` and squashing process, it's an extremely powerful and convenient tool that lets you stay "`in the flow.`"
+
+Like all powerful tools, it implies an extra level of diligence and responsibility.
+
+== !Always Proof-Read Your Commits
+
+Please *make sure* you then proof-read the end result (`"git diff origin/master HEAD"`, inspect in https://www.sourcetreeapp.com/[SourceTree], etc.) before pushing!
+
+[.smaller]
+Of course this is one of the major ways git is so much better than prior RCSs. https://jdigger.github.io/git-fundimentals-preso/#36[The Index lets you easily do all kinds of magic.]
+
+== Proofing On The Front
+
+If you prefer to do the proof-reading before ever adding to the Index you can:
+
+* `"git diff"`
+* view the uncommitted changes in a tool like gitk, IDEA, SourceTree, etc.
+* `"git add -p"` and explicitly approve every chunk
+
+[.smaller]
+Personally, I use all four (these 3 + "`fixup`") depending what I'm doing, the nature of the changes, etc. As always, it's good to be aware of the tools available and learning when to choose the right one.
+
+== End Product
+
+* Git makes it useful and easy to have terrible (but progressively better) "`rough drafts`" of your work as you think through a problem
+* At the end of the process you can squash your rabbit trails, consolidating those drafts into a beautiful end product of one or more commits crafted to make it clear to the poor souls that come after of what happened and why
+** Of course that only works if you also make sure that the commit message(s) accurately describes what changed and why
+
+== Git-Process
+
+image::Git-Process.png[link="https://github.com/jdigger/git-process"]
+
+
+== Version Controlled OS
+
+== !macOS
+
+I'll be talking particularly about macOS/OSX, but the techniques apply for any reasonable OS.
+
+== Simple Example With Homebrew
+
+== !Simple Example With Homebrew
+
+On macOS one of the principle ways of installing software is with http://brew.sh/[Homebrew]. (Along with https://caskroom.github.io/[Homebrew Cask] for binary-only installations.)
+
+One of the many benefits is that it's trivial to get a listing of what's on your machine:
+
+[source,bash]
+--
+$ brew list
+ack      freetype     httpie  mongodb
+asciidoc imagemagick  vim     docker
+...
+
+$ brew cask list
+firefox    sourcetree atom          spotify
+virtualbox dropbox    intellij-idea sublime
+evernote   java       skype         hipchat
+...
+--
+
+== !Using Homebrew's List
+
+Let's remember that information...
+
+```bash
+$ brew list > brews.txt
+$ brew cask list > casks.txt
+$ git add brews.txt casks.txt && git commit -m "Latest brews"
+$ git push
+```
+
+Now if your machine gets toasted, you get a new one, etc.
+
+[source,bash]
+--
+$ git clone https://myremoterepo.git brewsrepo ; cd brewsrepo
+$ cat brews.txt | while read l ; do brew install $l ; done
+$ cat casks.txt | while read l ; do brew cask install $l ; done
+--
+
+[.smaller]
+See http://joshlong.com/jl/blogPost/the-version-controlled-os.html[Josh Long's blog post] for a much better (and robust) write-up
+
+== "`Dotfiles`"
+
+== !Dotfiles
+
+"`Dotfiles`" is a shorthand way of referring to all the various configurations that reflect how over the years you've optimized you environment.
+
+[.smaller]
+--
+It refers to the fact that on *nix systems a great deal of customization is done via files starting with a "`.`" (which hides them) such as `"~/.profile"`
+--
+
+== !dotfile examples
+
+Includes things like:
+
+* what applications are installed
+** how they're set up
+** plugins, etc.
+* scripts
+* aliases
+* key-mappings
+* etc.
+
+== !Getting Productive
+
+In other words, it's all those various pieces that take so much time after getting a new machine that often take a couple days to a week until it "`feels`" right and you can be truly productive again.
+
+== History of Dotfiles
+
+In many ways, it's an extension of the whole "`infrastructure as code`" move of DevOps (after all, your workstation is part of development and delivery), but it's much older than that.
+
+The tools and techniques have gotten much better recently, though.
+
+== "`Meant`" To Be Forked?
+
+There's an on-going debate as to whether https://zachholman.com/2010/08/dotfiles-are-meant-to-be-forked/[dotfiles are meant to be forked] or http://www.anishathalye.com/2014/08/03/managing-your-dotfiles/[if they're too personal for that].
+
+Regardless, the industry consensus is that they *_should_* be version-controlled and shared freely*.
+
+== Private Information
+
+What about things like SSH keys, passwords, OAuth tokens, etc.?
+
+The most basic approaches:
+
+. Recreate everything manually (regenerate tokens, revoke old ones, etc.)
+** Messy, error-prone, and time-consuming. But it's also what most everyone does.
+. Store with everything else, but encrypted
+** Depending on how this is done, can be subject to brute-force attacks if the attacker cares enough
+. Store "`specially`" (thumb-drive, paper in your wallet, stripe across data-stores, etc.)
+** Prevents brute-force attacks, but susceptible to getting lost. Because of its inconvenience people tend to subvert this by copying in multiple places, etc.
+. Store specially and encrypt
+** While the most secure (as-in "`state secrets`"), the hardest to deal with by far
+
+== Encryption and Git
+
+While encrypted data is just data to git, what we'd like for this use-case is for it be encrypted on its way inside the repository and unencrypted on its way out.
+
+[.smaller]
+(But only if you have the keys, of course!)
+
+== !Encryption Tools
+
+For this example we'll use a combination of https://www.agwa.name/projects/git-crypt/[git-crypt] and https://keybase.io/[Keybase.io] using https://www.gnupg.org/[Gnu Privacy Guard (GPG)].
+
+== !Running Encryption
+
+[source,bash]
+--
+$ brew install gnupg2 keybase git-crypt
+$ keybase login <KEYBASE_USERNAME> # authorize device in blockchain
+$ keybase pgp export -s | gpg --import
+$ cd myrepo
+$ git crypt init
+$ git crypt add-gpg-user <KEY_ID or FINGERPRINT>
+$ echo "secret/* filter=git-crypt diff=git-crypt" >> .gitattributes
+$ git add .gitattributes secrets/*
+$ git commit -m "Added some secret files"
+--
+
+When the repo is cloned, everything looks good as long as you don't try to look at the encrypted file(s), which show as binary garbage.
+
+You need to do a `"git crypt unlock"` with the appropriate credentials (the private key in this case), at which point the local workdir would have the unencrypted files.
+
+== !Signing
+
+For a much deeper treatment of security, GPG, Git, etc. https://eligible.com/blog/commit-signing-with-git-hub-keybase-and-gpg/[Tyler Duzan wrote an excellent article]. He specifically talks about signing commits, but the tools and practices all apply.
+
+In particular, he talks about how to secure your keys much better than I'm doing here for the sake of simplicity.
+
+== Hosting Dotfiles
+
+== !Publishing Dotfiles
+
+https://dotfiles.github.io/[GitHub's Dotfile Guide] is a great central source of information, as is https://github.com/webpro/awesome-dotfiles["`Awesome dotfiles`"].
+
+== !Publishing Dotfiles
+
+Just perusing the major repos of published dotfiles is sure to provide useful gems.
+
+A classic for macOS/OSX is https://mths.be/macos[Mathias Bynens' script] to customize virtually everything about your Mac.
+
+== !Publishing Dotfiles
+
+If you want to make *your* files public, https://github.com/[GitHub.com] is a great place.
+
+If you are not so sure, https://bitbucket.org/[BitBucket.org] and https://gitlab.com/[GitLab.com] offer free private repos.
+
+== Dotfile Managers
+
+== !Dotfile Managers
+
+"`Classically`" managing these kinds of things has been a matter of copying some files around and running custom shell scripts.
+
+Thankfully, the tooling has gotten much better...
+
+== !Dotfile Managers
+
+If you're comfortable with general-purpose system management tools like https://puppet.com/[Puppet] or https://www.ansible.com/[Ansible], there's lots of resources on how to use those to manage workstations as well.
+
+(Such as https://jdigger.github.io/boxen-overview-preso/[GitHub's Boxen] to manage Macs with Puppet.)
+
+== !Dotfile Managers
+
+More specialized for dotfiles, here's a sampling (in no particular order):
+
+* https://github.com/pearl-core/pearl[Pearl] - focuses on modularity (packages), making it easy to share with your friends, your team, or the world
+* https://freshshell.com/[Fresh] - "`Bundler for your dotfiles`", it's as powerful (and complex) as you would expect from a package manager
+* https://github.com/FooSoft/homemaker[Homemaker] - Statically compiled (Go) for system types, supports configuration variants for different hosts, and doesn't assume git for everything.
+* https://github.com/atomantic/dotfiles[MacOS Bot] - Simple and highly opinionated around how developers typically like things
+* https://thelocehiliosan.github.io/yadm/[YADM] - Doesn't rely on symlinks, supports encryption, and allows multiple configurations based on OS/hostname.
+* https://pypi.python.org/pypi/cider/[Cider] - Lets Homebrew and Casks do most of the heavy lifting, providing some additional config for dotfiles and centralizing for your machine(s).
+* https://git.io/dotbot[DotBot] - Requires no installation; it tries to make typical things easy while staying out of your way
+
+
+== Spring Boot
+
+== !Spring Boot Tweet
+
+image::Spring_Boot_tweet.png[]
+
+Amazingly, it's gotten a lot simpler since then.
+
+== !Spring Boot Intro
+
+Brings "`convention over configuration`" as far as you can imagine taking it, making it trivial to have major development and operational concerns taken care of (configuration from environment or service registry, security, caching, load-balancing, monitoring & management, etc.)
+
+== !Spring Boot Intro
+
+Naturally, being Spring, you can use as much or as little as you want, you can tune the heck out of it, and it integrates with *_EVERYTHING_*.
+
+== !Spring Boot Intro
+
+image::Spring_Initializr.png[height=720]
+
+== JHipster
+
+== !JHipster
+
+image::JHipster.png[]
+
+== !JHipster
+
+image::JHipster_Client.png[]
+
+== !JHipster
+
+image::JHipster_Server.png[height=720]
+
+== !JHipster
+
+image::JDL-Studio.png[height=720]
+
+== !JHipster Generator
+
+image::jhipster_generator.png[height=720]
+
+== !JHipster Generator
+
+image::JHipster_Project.png[height=720]
+
+== !JHipster
+
+While it's principally meant for starting a project, there's on-going work to make it work well to make updates to an existing JHipster project as well.
+
+== !JHipster
+
+Even if, for whatever reason, you don't want to use JHipster directly, it's extremely useful to see how to integrate a host of technologies.
+
+Tons of comments in the code, illustrations of best-practices, etc.
+
+== !The_JHipster_Mini-Book_2_0
+
+image::The_JHipster_Mini-Book_2_0.png[height=660]
+https://www.infoq.com/minibooks/jhipster-2-mini-book
+
+== Modern Continuous Integration
+
+== In the Beginning (2001)
+
+image::CruiseControl_Home.png[]
+
+== !Cruise Control
+
+* Essentially a fancy `cron` on Tomcat that would poll your repository and kick off a build.
+* While it provided some basic capabilities (test reports, notifications, etc.) it was very rudimentary.
+* Was a *HUGE* step forward and helped kick off The Rise of Agile(R)(TM)(C).
+* You configure it on web pages, and it tracks configuration, builds and their results in its database.
+
+== !Butlers
+
+image::Hudson_Jenkins.png[]
+
+== !Hudson_Jenkins
+
+* Provided a nice plugin architecture, just as both Agile and Open Source were coming into their own.
+* A huge ecosystem of plugins.
+* Became the de-facto standard starting about 2008.
+* Acts as a shared resource for teams/companies.
+* It is the responsibility of the Jenkins admins to make sure that the environment is set up correctly, manage plugins, etc.
+* Continuous Delivery support (pipelines, etc.) is starting to get serious attention.
+* Very quick to become a "`pet`"/"`snowflake`" server, with all the associated problems.
+* While it's possible to support multiple branches, it's extremely fragile if those branches have configuration/environment needs different than the mainline.
+
+== !TravisCI
+
+image::Travis_CI.png[]
+
+== !TravisCI
+
+* The first popular CI platform for the Cloud Era.
+* There's virtually no setup on the server: just point it at your project repository.
+* All configuration for jobs is done via a configuration file (`".travis.yml"`) file in the project's repository.
+* Provide a handful of standard VMs (later Containers), providing a completely sandboxed environment for each build.
+* There's no plugins, and the responsibility for environment configuration (installing needed software, etc.) has to be handled in each project's configuration file.
+* No pipeline support, and only fairly rudimentary builds are practical (made a bit better by competitors like https://circleci.com/[CircleCI] and https://gitlab.com/[GitLab])
+* No centralized IT support needed, and scales extremely well
+* Since all configuration with the code, it's trivial to support different configurations for different branches, moving backwards in time, etc.
+
+
+== !Concourse CI
+
+image::Concourse_CI.png[]
+
+https://concourse.ci/[Concourse CI]
+
+== !Concourse_CI
+
+Primitives:
+
+* *Tasks:* execution of a script in an isolated environment with dependent resources made available to it
+* *Resources:* data, inputs/outputs  (e.g., files, git, s3, etc.)
+* *Jobs:* functions composed of behavior (tasks) and inputs/outputs (resources/other jobs)
+
+== !Concourse CI
+
+* All configuration is done in the project's repository. (Though you can have shared configuration as a resource.)
+* Uses the efficiency of Containers and surrounding infrastructure (e.g., Docker registries) to give the capabilities of plugins without the need to actually plug them into anything.
+* Pipelines are "`auto-discovered`" by building a DAG of a job's inputs and outputs.
+* Every task (and even every "`resource`", which is roughly analogous to "`plugins`") is run in its own container.
+** Because everything is sandboxed, with very tightly defined data transfer between the parts (principally STDIN/STDOUT), it makes reasoning about the pieces much easier and more reliable than in shard-state systems.
+
+== !Concourse CI
+
+Because the "`servers`" are immutable and the ubiquity of container tooling, you can https://concourse.ci/vagrant.html[set everything up in a VirtualBox instance running locally], check the configuration into the project's repository, and you're guaranteed that it will run exactly the same in a data-center/cloud environment.
+
+image::Concourse_CI_5min.png[height=500]
+
+== !Concourse CI
+
+Not only can the project's code be written in anything, but so can https://concourse.ci/implementing-resources.html[any of the "`resources`"].
+
+* If you look at the source code, the standard ones vary from Bash to Ruby to GoLang, but there's no reason Java or C# couldn't be used.
+* On a Docker container it will simply invoke `"/opt/resource/check"`, `"/opt/resource/in"` or `"/opt/resource/out"` with communication via STDIN/STDOUT/STDERR (and some minimal environment variables)
+
+== !Concourse_CI
+
+There's an *EXCELLENT* tutorial at https://github.com/starkandwayne/concourse-tutorial
+
+
+== Review
+
+[.toc]
+. Git Tips
+. Version Controlled OS
+. Spring Boot
+. JHipster
+. Modern Continuous Integration
+
+
+== Q & A

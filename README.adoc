@@ -1,0 +1,42 @@
+# Purpose
+
+A presentation on how some cool things I've been playing with.
+
+To view, either download the source and open `index.html` in a HTML5 web browser, or go to https://jdigger.github.io/201612-cool-stuff-preso/
+
+# Building
+
+## Setup
+```
+npm install -g gulp-cli
+bundle && npm i
+```
+
+## Building
+
+```
+gulp
+```
+
+## Local Web server
+
+```
+gulp serve
+```
+
+## Publish GH-Pages
+
+```
+gulp deploy
+```
+
+
+# Software This Uses
+
+* http://markdalgleish.com/projects/bespoke.js/[Bespoke], a framework for easily creating beautiful presentations using HTML.
+* https://github.com/asciidoctor/asciidoctor-bespoke[Asciidoctor Bespoke]
+
+## Licenses
+
+* The presentation content is [CC Attribution 4.0 licensed](http://creativecommons.org/licenses/by/4.0/), Copyright (C) 2016 Jim J. Moore
+* Bespoke.js is MIT licensed
