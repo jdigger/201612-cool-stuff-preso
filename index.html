@@ -1,0 +1,196 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>2016-12 Cool Stuff</title><meta name="author" content="Jim Moore"><meta name="generator" content="Asciidoctor 1.5.4 (Bespoke.js converter)"><meta name="mobile-web-app-capable" content="yes"><link rel="stylesheet" href="build/build.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"></head><body><article class="deck"><section class="title" data-title=""><h1>2016-12 Cool Stuff</h1><p>Some of the interesting things I&#8217;ve been playing with lately</p>
+<div class="smaller"><p>Created by <a href="https://github.com/jdigger/">Jim Moore</a></p>
+<p><a href="https://keybase.io/jmoore">keybase.io/jmoore</a> / <a href="http://twitter.com/jdiggerj">@jdiggerj</a></p></div>
+<br/><br/><div class="content" style="display: flex; text-align: center;"><p style="font-size: 0.6em"><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">2016-07 Cool Stuff</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Jim J. Moore</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.<br />Presentation source at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/jdigger/201612-cool-stuff-preso" rel="dct:source">https://github.com/jdigger/201612-cool-stuff-preso</a></p></div><footer><p class="author"><span class="personname"><span class="firstname">Jim</span> <span class="surname">Moore</span></span><span class="contact"><span class="twitter">@jdiggerj</span> </span></p></footer></section>
+<section><h2>Agenda</h2><ol class="toc"><li><span class="primary">Git</span></li><li><span class="primary">Version Controlled OS</span></li><li><span class="primary">Spring Boot</span></li><li><span class="primary">JHipster</span></li><li><span class="primary">Modern Continuous Integration</span></li></ol></section>
+<section><h2>Git</h2></section>
+<section><p>Don&#8217;t forget about <a href="https://jdigger.github.io/git-fundimentals-preso/">Git Made Simple</a></p>
+<figure class="image"><img src="images/Git_Made_Simple.png" alt="Git Made Simple"></figure></section>
+<section><h2>git config --global push.default current</h2><p><a href="https://git-scm.com/docs/git-config#git-config-pushdefault">The docs.</a></p>
+<pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git checkout mybranch
+<span class="tok-nv">$ </span>git push    <span class="tok-c"># git push origin HEAD:mybranch</span></code></pre>
+<p>This differs from <code>matching</code> and <code>simple</code> (the pre-2.0 and post-2.0 defaults, respectively) in that it only works on the current branch, not across all local branches.</p></section>
+<section><h2>git config --global alias.pf &#8230;&#8203;</h2><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-o">[</span><span class="tok-nb">alias</span><span class="tok-o">]</span>
+  <span class="tok-nv">pf</span> <span class="tok-o">=</span> <span class="tok-s2">&quot;!git config --get branch.$(git symbolic-ref</span>
+<span class="tok-s2">        --short HEAD).merge &gt; /dev/null &amp;&amp; git push</span>
+<span class="tok-s2">        --force-with-lease || git push --force-with-lease -u&quot;</span></code></pre>
+<p class="smaller">(If you copy &amp; paste into you <code>~/.gitconfig</code> you need to remove the newlines used here for formatting)</p>
+<p>Runs <code>"git push --force-with-lease"</code> with <a href="https://git-scm.com/docs/git-push#git-push&#8212;&#8203;u">the <code>"-u"</code> flag to set the tracking branch</a>, depending on if it has already been set.</p></section>
+<section><h2>--force-with-lease</h2><p><a href="https://git-scm.com/docs/git-push#git-push---no-force-with-lease">The docs for --force-with-lease</a></p>
+<p>Essentially does &#8220;optimistic locking&#8221; on the remote branch. Checks that the rev hasn&#8217;t changed since the last time you did a <code>"git fetch"</code>.</p>
+<p>If they match, acts as <code>"git push --force"</code> because it assumes you&#8217;ve already done any needed reconciliation. If the revs don&#8217;t match exactly it fails.</p>
+<p class="smaller"><a href="https://developer.atlassian.com/blog/2015/04/force-with-lease/">Linked is a great post with much more information.</a></p></section>
+<section><h2>git config --global branch.autoSetupRebase always</h2><p><a href="https://git-scm.com/docs/git-config#git-config-branchautoSetupRebase">The docs.</a></p>
+<p>When the upstream branch is set, the <code>"branch.&lt;name&gt;.rebase true"</code> config is also set.</p>
+<p>What that effectively means is that the default behavior for <code>"git pull"</code> is to do a rebase instead of a merge.</p></section>
+<section><h2>What That Looks Like</h2><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git checkout -b mybranch
+Switched to a new branch <span class="tok-s1">&#39;mybranch&#39;</span>
+
+<span class="tok-nv">$ </span>cat .git/config
+<span class="tok-o">[</span>remote <span class="tok-s2">&quot;origin&quot;</span><span class="tok-o">]</span>
+	<span class="tok-nv">url</span> <span class="tok-o">=</span> https://github.com/jdigger/201612-cool-stuff-preso.git
+	<span class="tok-nv">fetch</span> <span class="tok-o">=</span> +refs/heads/*:refs/remotes/origin/*
+<span class="tok-o">[</span>branch <span class="tok-s2">&quot;master&quot;</span><span class="tok-o">]</span>
+	<span class="tok-nv">remote</span> <span class="tok-o">=</span> origin
+	<span class="tok-nv">merge</span> <span class="tok-o">=</span> refs/heads/master
+	<span class="tok-nv">rebase</span> <span class="tok-o">=</span> <span class="tok-nb">true</span></code></pre></section>
+<section><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git pf
+To https://github.com/jdigger/201612-cool-stuff-preso.git
+ * <span class="tok-o">[</span>new branch<span class="tok-o">]</span>      mybranch -&gt; mybranch
+Branch mybranch <span class="tok-nb">set </span>up to track remote branch mybranch from
+origin by rebasing.
+
+<span class="tok-nv">$ </span>cat .git/config
+<span class="tok-o">[</span>branch <span class="tok-s2">&quot;master&quot;</span><span class="tok-o">]</span>
+	<span class="tok-nv">remote</span> <span class="tok-o">=</span> origin
+	<span class="tok-nv">merge</span> <span class="tok-o">=</span> refs/heads/master
+	<span class="tok-nv">rebase</span> <span class="tok-o">=</span> <span class="tok-nb">true</span>
+<span class="tok-o">[</span>branch <span class="tok-s2">&quot;mybranch&quot;</span><span class="tok-o">]</span>
+	<span class="tok-nv">remote</span> <span class="tok-o">=</span> origin
+	<span class="tok-nv">merge</span> <span class="tok-o">=</span> refs/heads/mybranch
+	<span class="tok-nv">rebase</span> <span class="tok-o">=</span> <span class="tok-nb">true</span></code></pre></section>
+<section><h2>Git Workflow Implications</h2><ul><li><span class="primary">Using <code>"git pull"</code> and <code>"git pf"</code> you can <strong>safely</strong> have your nice linear history.</span><ul><li><span class="primary">The caveats about rewriting history of published integration branches applies, but it&#8217;s no worse than when done with a merge.</span></li></ul></li><li><span class="primary">Of course you want to do <code>"git pull &amp;&amp; git rebase origin/master"</code> on a regular basis.</span></li></ul></section>
+<section><h2>Making &#8220;Green to Green&#8221; Development Easier</h2><p>If you&#8217;re the kind person that does TDD and likes to &#8220;checkpoint&#8221; your work every time you see The Green Bar&#8230;&#8203;</p>
+<figure class="image"><img src="http://i.giphy.com/6gh9vOu0qbQmk.gif" alt="6gh9vOu0qbQmk"></figure></section>
+<section><h2>git config --global alias.fixup &#8230;&#8203;</h2><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-o">[</span><span class="tok-nb">alias</span><span class="tok-o">]</span>
+  <span class="tok-nv">fixup</span> <span class="tok-o">=</span> <span class="tok-s2">&quot;!sh -c &#39;git add -A &amp;&amp;</span>
+<span class="tok-s2">           git commit -m \&quot;fixup! $(git log</span>
+<span class="tok-s2">           -1 --format=&#39;\\&#39;&#39;%s&#39;\\&#39;&#39; $@)\&quot;&#39; -&quot;</span></code></pre>
+<p class="smaller">(If you copy &amp; paste into you <code>~/.gitconfig</code> you need to remove the newlines used here for formatting)</p>
+<p><a href="https://jdigger.github.io/git-fundimentals-preso/#35">Adds any changes made to the index</a> and commits them with the same commit summary message as the prior commit, prepended with "fixup! "</p>
+<p>That becomes much more useful when used in conjunction with&#8230;&#8203;</p></section>
+<section><h2>git config --global rebase.autosquash true</h2><p><a href="https://git-scm.com/docs/git-rebase#git-rebase---autosquash">The docs.</a></p>
+<p>Adds <code>"--autosquash"</code> to any <code>"git rebase -i"</code> command.</p></section>
+<section><h2>What That Looks Like</h2><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git commit -am <span class="tok-s2">&quot;Build out Git Workflow section&quot;</span>
+<span class="tok-o">[</span>mybranch 8602f88<span class="tok-o">]</span> Build out Git Workflow section
+ <span class="tok-m">1</span> file changed, <span class="tok-m">38</span> insertions<span class="tok-o">(</span>+<span class="tok-o">)</span>
+
+<span class="tok-nv">$ </span><span class="tok-c"># changes made</span>
+<span class="tok-nv">$ </span>git fixup
+<span class="tok-o">[</span>mybranch 09931f2<span class="tok-o">]</span> fixup! Build out Git Workflow section
+ <span class="tok-m">1</span> file changed, <span class="tok-m">10</span> insertions<span class="tok-o">(</span>+<span class="tok-o">)</span>
+
+<span class="tok-nv">$ </span><span class="tok-c"># changes made</span>
+<span class="tok-nv">$ </span>git fixup
+<span class="tok-o">[</span>mybranch 9640c0f<span class="tok-o">]</span> fixup! fixup! Build out Git Workflow section
+ <span class="tok-m">1</span> file changed, <span class="tok-m">7</span> insertions<span class="tok-o">(</span>+<span class="tok-o">)</span></code></pre></section>
+<section><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git rebase -i</code></pre>
+<pre class="source"><code data-lang="bash" class="language-bash prettyprint">pick 8602f88 Build out Git Workflow section
+fixup 09931f2 fixup! Build out Git Workflow section
+fixup 9640c0f fixup! fixup! Build out Git Workflow section
+
+<span class="tok-c"># Rebase d88acf0..9640c0f onto d88acf0 (4 commands)</span>
+<span class="tok-c">#</span>
+<span class="tok-c"># Commands:</span>
+<span class="tok-c"># p, pick = use commit</span>
+<span class="tok-c"># s, squash = use commit, but meld into previous commit</span>
+<span class="tok-c"># f, fixup = like &quot;squash&quot;, but discard this commit&#39;s log message</span></code></pre></section>
+<section><p>If you do the <code>"git fixup"</code> and squashing process, it&#8217;s an extremely powerful and convenient tool that lets you stay &#8220;in the flow.&#8221;</p>
+<p>Like all powerful tools, it implies an extra level of diligence and responsibility.</p></section>
+<section><p>Please <strong>make sure</strong> you then proof-read the end result (<code>"git diff origin/master HEAD"</code>, inspect in <a href="https://www.sourcetreeapp.com/">SourceTree</a>, etc.) before pushing!</p>
+<p class="smaller">Of course this is one of the major ways git is so much better than prior RCSs. <a href="https://jdigger.github.io/git-fundimentals-preso/#36">The Index lets you easily do all kinds of magic.</a></p></section>
+<section><h2>Proofing On The Front</h2><p>If you prefer to do the proof-reading before ever adding to the Index you can:</p>
+<ul><li><span class="primary"><code>"git diff"</code></span></li><li><span class="primary">view the uncommitted changes in a tool like gitk, IDEA, SourceTree, etc.</span></li><li><span class="primary"><code>"git add -p"</code> and explicitly approve every chunk</span></li></ul>
+<p class="smaller">Personally, I use all four (these 3 + &#8220;fixup&#8221;) depending what I&#8217;m doing, the nature of the changes, etc. As always, it&#8217;s good to be aware of the tools available and learning when to choose the right one.</p></section>
+<section><h2>End Product</h2><ul><li><span class="primary">Git makes it useful and easy to have terrible (but progressively better) &#8220;rough drafts&#8221; of your work as you think through a problem</span></li><li><span class="primary">At the end of the process you can squash your rabbit trails, consolidating those drafts into a beautiful end product of one or more commits crafted to make it clear to the poor souls that come after of what happened and why</span><ul><li><span class="primary">Of course that only works if you also make sure that the commit message(s) accurately describes what changed and why</span></li></ul></li></ul></section>
+<section><h2>Git-Process</h2><figure class="image"><img src="images/Git-Process.png" alt="Git Process"></figure></section>
+<section><h2>Version Controlled OS</h2></section>
+<section><p>I&#8217;ll be talking particularly about macOS/OSX, but the techniques apply for any reasonable OS.</p></section>
+<section><h2>Simple Example With Homebrew</h2></section>
+<section><p>On macOS one of the principle ways of installing software is with <a href="http://brew.sh/">Homebrew</a>. (Along with <a href="https://caskroom.github.io/">Homebrew Cask</a> for binary-only installations.)</p>
+<p>One of the many benefits is that it&#8217;s trivial to get a listing of what&#8217;s on your machine:</p>
+<pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>brew list
+ack      freetype     httpie  mongodb
+asciidoc imagemagick  vim     docker
+...
+
+<span class="tok-nv">$ </span>brew cask list
+firefox    sourcetree atom          spotify
+virtualbox dropbox    intellij-idea sublime
+evernote   java       skype         hipchat
+...</code></pre></section>
+<section><p>Let&#8217;s remember that information&#8230;&#8203;</p>
+<pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>brew list &gt; brews.txt
+<span class="tok-nv">$ </span>brew cask list &gt; casks.txt
+<span class="tok-nv">$ </span>git add brews.txt casks.txt <span class="tok-o">&amp;&amp;</span> git commit -m <span class="tok-s2">&quot;Latest brews&quot;</span>
+<span class="tok-nv">$ </span>git push</code></pre>
+<p>Now if your machine gets toasted, you get a new one, etc.</p>
+<pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git clone https://myremoterepo brewsrepo <span class="tok-p">;</span> <span class="tok-nb">cd </span>brewsrepo
+<span class="tok-nv">$ </span>cat brews.txt <span class="tok-p">|</span> <span class="tok-k">while</span> <span class="tok-nb">read </span>l <span class="tok-p">;</span> <span class="tok-k">do</span> brew install <span class="tok-nv">$l</span> <span class="tok-p">;</span> <span class="tok-k">done</span>
+<span class="tok-nv">$ </span>cat casks.txt <span class="tok-p">|</span> <span class="tok-k">while</span> <span class="tok-nb">read </span>l <span class="tok-p">;</span> <span class="tok-k">do</span> brew cask install <span class="tok-nv">$l</span> <span class="tok-p">;</span> <span class="tok-k">done</span></code></pre>
+<p class="smaller">See <a href="http://joshlong.com/jl/blogPost/the-version-controlled-os.html">Josh Long&#8217;s blog post</a> for a much better (and robust) write-up</p></section>
+<section><h2>&#8220;Dotfiles&#8221;</h2></section>
+<section><p>&#8220;Dotfiles&#8221; is a shorthand way of referring to all the various configurations that reflect how over the years you&#8217;ve optimized you environment.</p>
+<div class="smaller"><p>It refers to the fact that on *nix systems a great deal of customization is done via files starting with a &#8220;.&#8221; (which hides them) such as <code>"~/.profile"</code></p></div></section>
+<section><p>Includes things like:</p>
+<ul><li><span class="primary">what applications are installed</span><ul><li><span class="primary">how they&#8217;re set up</span></li><li><span class="primary">plugins, etc.</span></li></ul></li><li><span class="primary">scripts</span></li><li><span class="primary">aliases</span></li><li><span class="primary">key-mappings</span></li><li><span class="primary">etc.</span></li></ul></section>
+<section><p>In other words, it&#8217;s all those various pieces that take so much time after getting a new machine that often take a couple days to a week until it &#8220;feels&#8221; right and you can be truly productive again.</p></section>
+<section><h2>History of Dotfiles</h2><p>In many ways, it&#8217;s an extension of the whole &#8220;infrastructure as code&#8221; move of DevOps (after all, your workstation is part of development and delivery), but it&#8217;s much older than that.</p>
+<p>The tools and techniques have gotten much better recently, though.</p></section>
+<section><h2>&#8220;Meant&#8221; To Be Forked?</h2><p>There&#8217;s an on-going debate as to whether <a href="https://zachholman.com/2010/08/dotfiles-are-meant-to-be-forked/">dotfiles are meant to be forked</a> or <a href="http://www.anishathalye.com/2014/08/03/managing-your-dotfiles/">if they&#8217;re too personal for that</a>.</p>
+<p>Regardless, the industry consensus is that they <strong><em>should</em></strong> be version-controlled and shared freely*.</p></section>
+<section><h2>Private Information</h2><p>What about things like SSH keys, passwords, OAuth tokens, etc.?</p>
+<p>The most basic approaches:</p>
+<ol><li><span class="primary">Recreate everything manually (regenerate tokens, revoke old ones, etc.)</span><ul><li><span class="primary">Messy, error-prone, and time-consuming. But it&#8217;s also what most everyone does.</span></li></ul></li><li><span class="primary">Store with everything else, but encrypted</span><ul><li><span class="primary">Depending on how this is done, can be subject to brute-force attacks if the attacker cares enough</span></li></ul></li><li><span class="primary">Store &#8220;specially&#8221; (thumb-drive, paper in your wallet, stripe across data-stores, etc.)</span><ul><li><span class="primary">Prevents brute-force attacks, but susceptible to getting lost. Because of its inconvenience people tend to subvert this by copying in multiple places, etc.</span></li></ul></li><li><span class="primary">Store specially and encrypt</span><ul><li><span class="primary">While the most secure (as-in &#8220;state secrets&#8221;), the hardest to deal with by far</span></li></ul></li></ol></section>
+<section><h2>Encryption and Git</h2><p>While encrypted data is just data to git, what we&#8217;d like for this use-case is for it be encrypted on its way inside the repository and unencrypted on its way out. (But only if you have the keys, of course!)</p></section>
+<section><p>For this example we&#8217;ll use a combination of <a href="https://www.agwa.name/projects/git-crypt/">git-crypt</a> and <a href="https://keybase.io/">Keybase.io</a> using <a href="https://www.gnupg.org/">Gnu Privacy Guard (GPG)</a>.</p></section>
+<section><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>brew install gnupg2 keybase git-crypt
+<span class="tok-nv">$ </span>keybase login &lt;KEYBASE_USERNAME&gt; <span class="tok-c"># authorize device in blockchain</span>
+<span class="tok-nv">$ </span>keybase pgp <span class="tok-nb">export</span> -s <span class="tok-p">|</span> gpg --import
+<span class="tok-nv">$ </span><span class="tok-nb">cd </span>myrepo
+<span class="tok-nv">$ </span>git crypt init
+<span class="tok-nv">$ </span>git crypt add-gpg-user &lt;KEY_ID or FINGERPRINT&gt;
+<span class="tok-nv">$ </span><span class="tok-nb">echo</span> <span class="tok-s2">&quot;secret/* filter=git-crypt diff=git-crypt&quot;</span> &gt;&gt; .gitattributes
+<span class="tok-nv">$ </span>git add .gitattributes secrets/*
+<span class="tok-nv">$ </span>git commit -m <span class="tok-s2">&quot;Added some secret files&quot;</span></code></pre>
+<p>When the repo is cloned, everything looks good as long as you don&#8217;t try to look at the encrypted file(s), which show as binary garbage.</p>
+<p>You need to do a <code>"git crypt unlock"</code> with the appropriate credentials (the private key in this case), at which point the local workdir would have the unencrypted files.</p></section>
+<section><p>For a much deeper treatment of security, GPG, Git, etc. <a href="https://eligible.com/blog/commit-signing-with-git-hub-keybase-and-gpg/">Tyler Duzan wrote an excellent article</a>. He specifically talks about signing commits, but the tools and practices all apply.</p>
+<p>In particular, he talks about how to secure your keys much better than I&#8217;m doing here for the sake of simplicity.</p></section>
+<section><h2>Managing Dotfiles</h2><p><a href="https://dotfiles.github.io/">GitHub&#8217;s Dotfile Guide</a> is a great central source of information, as is <a href="https://github.com/webpro/awesome-dotfiles">&#8220;Awesome dotfiles&#8221;</a>.</p></section>
+<section><p>Just perusing the major repos of published dotfiles is sure to provide useful gems.</p>
+<p>A classic for macOS/OSX is <a href="https://mths.be/macos">Mathias Bynens' script</a> to customize virtually everything about your Mac.</p></section>
+<section><p>If you want to make <strong>your</strong> files public, <a href="https://github.com/">GitHub.com</a> is a great place.</p>
+<p>If you are not so sure, <a href="https://bitbucket.org/">BitBucket.org</a> and <a href="https://gitlab.com/">GitLab.com</a> offer free private repos.</p></section>
+<section><h2>Dotfile Managers</h2><p>&#8220;Classically&#8221; managing these kinds of things has been a matter of copying some files around and running custom shell scripts.</p>
+<p>Thankfully, the tooling has gotten much better&#8230;&#8203;</p></section>
+<section><p>If you&#8217;re comfortable with general-purpose system management tools like <a href="https://puppet.com/">Puppet</a> or <a href="https://www.ansible.com/">Ansible</a>, there&#8217;s lots of resources on how to use those to manage workstations as well.</p>
+<p>(Such as <a href="https://jdigger.github.io/boxen-overview-preso/">GitHub&#8217;s Boxen</a> to manage Macs with Puppet.)</p></section>
+<section><p>More specialized for dotfiles, here&#8217;s a sampling (in no particular order):</p>
+<ul><li><span class="primary"><a href="https://github.com/pearl-core/pearl">Pearl</a> - focuses on modularity (packages), making it easy to share with your friends, your team, or the world</span></li><li><span class="primary"><a href="https://freshshell.com/">Fresh</a> - &#8220;Bundler for your dotfiles&#8221;, it&#8217;s as powerful (and complex) as you would expect from a package manager</span></li><li><span class="primary"><a href="https://github.com/FooSoft/homemaker">Homemaker</a> - Statically compiled (Go) for system types, supports configuration variants for different hosts, and doesn&#8217;t assume git for everything.</span></li><li><span class="primary"><a href="https://github.com/atomantic/dotfiles">MacOS Bot</a> - Simple and highly opinionated around how developers typically like things</span></li><li><span class="primary"><a href="https://thelocehiliosan.github.io/yadm/">YADM</a> - Doesn&#8217;t rely on symlinks, supports encryption, and allows multiple configurations based on OS/hostname.</span></li><li><span class="primary"><a href="https://pypi.python.org/pypi/cider/">Cider</a> - Lets Homebrew and Casks do most of the heavy lifting, providing some additional config for dotfiles and centralizing for your machine(s).</span></li><li><span class="primary"><a href="https://git.io/dotbot">DotBot</a> - Requires no installation; it tries to make typical things easy while staying out of your way</span></li></ul></section>
+<section><h2>Spring Boot</h2></section>
+<section><figure class="image"><img src="images/Spring_Boot_tweet.png" alt="Spring Boot tweet"></figure>
+<p>Amazingly, it&#8217;s gotten a lot simpler since then.</p></section>
+<section><p>Brings &#8220;convention over configuration&#8221; as far as you can imagine taking it, making it trivial to have major development and operational concerns taken care of (configuration from environment or service registry, security, monitoring &amp; management, etc.).</p></section>
+<section><p>Naturally, being Spring, you can use as much or as little as you want, you can tune the heck out of it, and it integrates with <strong><em>EVERYTHING</em></strong>.</p></section>
+<section><figure class="image"><img src="images/Spring_Initializr.png" alt="Spring Initializr" height="720"></figure></section>
+<section><h2>JHipster</h2></section>
+<section><figure class="image"><img src="images/JHipster.png" alt="JHipster"></figure></section>
+<section><figure class="image"><img src="images/JHipster_Client.png" alt="JHipster Client"></figure></section>
+<section><figure class="image"><img src="images/JHipster_Server.png" alt="JHipster Server" height="720"></figure></section>
+<section><figure class="image"><img src="images/JDL-Studio.png" alt="JDL Studio" height="720"></figure></section>
+<section><figure class="image"><img src="images/jhipster_generator.png" alt="jhipster generator" height="720"></figure></section>
+<section><figure class="image"><img src="images/JHipster_Project.png" alt="JHipster Project" height="720"></figure></section>
+<section><p>While it&#8217;s principally meant for starting a project, there&#8217;s on-going work to make it work well to make updates to an existing JHipster project as well.</p></section>
+<section><p>Even if, for whatever reason, you don&#8217;t want to use JHipster directly, it&#8217;s extremely useful to see how to integrate a host of technologies.</p>
+<p>Tons of comments in the code, illustrations of best-practices, etc.</p></section>
+<section><figure class="image"><img src="images/The_JHipster_Mini-Book_2_0.png" alt="The JHipster Mini Book 2 0" height="660"></figure>
+<p><a href="https://www.infoq.com/minibooks/jhipster-2-mini-book" class="bare">https://www.infoq.com/minibooks/jhipster-2-mini-book</a></p></section>
+<section><h2>Modern Continuous Integration</h2></section>
+<section><h2>In the Beginning (2001)</h2><figure class="image"><img src="images/CruiseControl_Home.png" alt="CruiseControl Home"></figure></section>
+<section><ul><li><span class="primary">Essentially a fancy <code>cron</code> on Tomcat that would poll your repository and kick off a build.</span></li><li><span class="primary">While it provided some basic capabilities (test reports, notifications, etc.) it was very rudimentary.</span></li><li><span class="primary">Was a <strong>HUGE</strong> step forward and helped kick off The Rise of Agile&#174;&#8482;&#169;.</span></li><li><span class="primary">You configure it on web pages, and it tracks configuration, builds and their results in its database.</span></li></ul></section>
+<section><figure class="image"><img src="images/Hudson_Jenkins.png" alt="Hudson Jenkins"></figure></section>
+<section><ul><li><span class="primary">Provided a nice plugin architecture, just as both Agile and Open Source were coming into their own.</span></li><li><span class="primary">A huge ecosystem of plugins.</span></li><li><span class="primary">Became the de-facto standard starting about 2008.</span></li><li><span class="primary">Acts as a shared resource for teams/companies.</span></li><li><span class="primary">It is the responsibility of the Jenkins admins to make sure that the environment is set up correctly, manage plugins, etc.</span></li><li><span class="primary">Continuous Delivery support (pipelines, etc.) is starting to get serious attention.</span></li><li><span class="primary">Very quick to become a &#8220;pet&#8221;/&#8220;snowflake&#8221; server, with all the associated problems.</span></li><li><span class="primary">While it&#8217;s possible to support multiple branches, it&#8217;s extremely fragile if those branches have configuration/environment needs different than the mainline.</span></li></ul></section>
+<section><figure class="image"><img src="images/Travis_CI.png" alt="Travis CI"></figure></section>
+<section><ul><li><span class="primary">The first popular CI platform for the Cloud Era.</span></li><li><span class="primary">There&#8217;s virtually no setup on the server: just point it at your project repository.</span></li><li><span class="primary">All configuration for jobs is done via a configuration file (<code>".travis.yml"</code>) file in the project&#8217;s repository.</span></li><li><span class="primary">Provide a handful of standard VMs (later Containers), providing a completely sandboxed environment for each build.</span></li><li><span class="primary">There&#8217;s no plugins, and the responsibility for environment configuration (installing needed software, etc.) has to be handled in each project&#8217;s configuration file.</span></li><li><span class="primary">No pipeline support, and only fairly rudimentary builds are practical (made a bit better by competitors like <a href="https://circleci.com/">CircleCI</a> and <a href="https://gitlab.com/">GitLab</a>)</span></li><li><span class="primary">No centralized IT support needed, and scales extremely well</span></li><li><span class="primary">Since all configuration with the code, it&#8217;s trivial to support different configurations for different branches, moving backwards in time, etc.</span></li></ul></section>
+<section><figure class="image"><img src="images/Concourse_CI.png" alt="Concourse CI"></figure>
+<p><a href="https://concourse.ci/">Concourse CI</a></p></section>
+<section><p>Primitives:</p>
+<ul><li><span class="primary"><strong>Tasks:</strong> execution of a script in an isolated environment with dependent resources made available to it</span></li><li><span class="primary"><strong>Resources:</strong> data, inputs/outputs  (e.g., files, git, s3, etc.)</span></li><li><span class="primary"><strong>Jobs:</strong> functions composed of behavior (tasks) and inputs/outputs (resources/other jobs)</span></li></ul></section>
+<section><ul><li><span class="primary">All configuration is done in the project&#8217;s repository. (Though you can have shared configuration as a resource.)</span></li><li><span class="primary">Uses the efficiency of Containers and surrounding infrastructure (e.g., Docker registries) to give the capabilities of plugins without the need to actually plug them into anything.</span></li><li><span class="primary">Pipelines are &#8220;auto-discovered&#8221; by building a DAG of a job&#8217;s inputs and outputs.</span></li><li><span class="primary">Every task (and even every &#8220;resource&#8221;, which is roughly analogous to &#8220;plugins&#8221;) is run in its own container.</span><ul><li><span class="primary">Because everything is sandboxed, with very tightly defined data transfer between the parts (principally STDIN/STDOUT), it makes reasoning about the pieces much easier and more reliable than in shard-state systems.</span></li></ul></li></ul></section>
+<section><p>Because the &#8220;servers&#8221; are immutable and the ubiquity of container tooling, you can <a href="https://concourse.ci/vagrant.html">set everything up in a VirtualBox instance running locally</a>, check the configuration into the project&#8217;s repository, and you&#8217;re guaranteed that it will run exactly the same in a data-center/cloud environment.</p>
+<figure class="image"><img src="images/Concourse_CI_5min.png" alt="Concourse CI 5min" height="500"></figure></section>
+<section><p>Not only can the project&#8217;s code be written in anything, but so can <a href="https://concourse.ci/implementing-resources.html">any of the &#8220;resources&#8221;</a>.</p>
+<ul><li><span class="primary">If you look at the source code, the standard ones vary from Bash to Ruby to GoLang, but there&#8217;s no reason Java or C# couldn&#8217;t be used.</span></li><li><span class="primary">On a Docker container it will simply invoke <code>"/opt/resource/check"</code>, <code>"/opt/resource/in"</code> or <code>"/opt/resource/out"</code> with communication via STDIN/STDOUT/STDERR (and some minimal environment variables)</span></li></ul></section>
+<section><p>There&#8217;s an <strong>EXCELLENT</strong> tutorial at <a href="https://github.com/starkandwayne/concourse-tutorial" class="bare">https://github.com/starkandwayne/concourse-tutorial</a></p></section>
+<section><h2>Q &amp; A</h2></section></article><script src="build/build.js"></script></body></html>
