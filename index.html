@@ -1,11 +1,11 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>2016-12 Cool Stuff</title><meta name="author" content="Jim Moore"><meta name="generator" content="Asciidoctor 1.5.4 (Bespoke.js converter)"><meta name="mobile-web-app-capable" content="yes"><link rel="stylesheet" href="build/build.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"></head><body><article class="deck"><section class="title" data-title=""><h1>2016-12 Cool Stuff</h1><p>Some of the interesting things I&#8217;ve been playing with lately</p>
 <div class="smaller"><p>Created by <a href="https://github.com/jdigger/">Jim Moore</a></p>
 <p><a href="https://keybase.io/jmoore">keybase.io/jmoore</a> / <a href="http://twitter.com/jdiggerj">@jdiggerj</a></p></div>
-<br/><br/><div class="content" style="display: flex; text-align: center;"><p style="font-size: 0.6em"><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">2016-07 Cool Stuff</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Jim J. Moore</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.<br />Presentation source at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/jdigger/201612-cool-stuff-preso" rel="dct:source">https://github.com/jdigger/201612-cool-stuff-preso</a></p></div><footer><p class="author"><span class="personname"><span class="firstname">Jim</span> <span class="surname">Moore</span></span><span class="contact"><span class="twitter">@jdiggerj</span> </span></p></footer></section>
-<section><h2>Agenda</h2><ol class="toc"><li><span class="primary">Git</span></li><li><span class="primary">Version Controlled OS</span></li><li><span class="primary">Spring Boot</span></li><li><span class="primary">JHipster</span></li><li><span class="primary">Modern Continuous Integration</span></li></ol></section>
-<section><h2>Git</h2></section>
+<br/><br/><div class="content" style="display: flex; text-align: center;"><p style="font-size: 0.6em"><a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">2016-12 Cool Stuff</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">Jim J. Moore</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.<br />Presentation source at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/jdigger/201612-cool-stuff-preso" rel="dct:source">https://github.com/jdigger/201612-cool-stuff-preso</a></p></div><footer><p class="author"><span class="personname"><span class="firstname">Jim</span> <span class="surname">Moore</span></span><span class="contact"><span class="twitter">@jdiggerj</span> </span></p></footer></section>
+<section><h2>Agenda</h2><ol class="toc"><li><span class="primary">Git Tips</span></li><li><span class="primary">Version Controlled OS</span></li><li><span class="primary">Spring Boot</span></li><li><span class="primary">JHipster</span></li><li><span class="primary">Modern Continuous Integration</span></li></ol></section>
+<section><h2>Git Tips</h2></section>
 <section><p>Don&#8217;t forget about <a href="https://jdigger.github.io/git-fundimentals-preso/">Git Made Simple</a></p>
-<figure class="image"><img src="images/Git_Made_Simple.png" alt="Git Made Simple"></figure></section>
+<figure class="image"><img src="images/Git_Made_Simple.png" alt="Git Made Simple" height="660"></figure></section>
 <section><h2>git config --global push.default current</h2><p><a href="https://git-scm.com/docs/git-config#git-config-pushdefault">The docs.</a></p>
 <pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git checkout mybranch
 <span class="tok-nv">$ </span>git push    <span class="tok-c"># git push origin HEAD:mybranch</span></code></pre>
@@ -49,7 +49,7 @@ origin by rebasing.
 	<span class="tok-nv">remote</span> <span class="tok-o">=</span> origin
 	<span class="tok-nv">merge</span> <span class="tok-o">=</span> refs/heads/mybranch
 	<span class="tok-nv">rebase</span> <span class="tok-o">=</span> <span class="tok-nb">true</span></code></pre></section>
-<section><h2>Git Workflow Implications</h2><ul><li><span class="primary">Using <code>"git pull"</code> and <code>"git pf"</code> you can <strong>safely</strong> have your nice linear history.</span><ul><li><span class="primary">The caveats about rewriting history of published integration branches applies, but it&#8217;s no worse than when done with a merge.</span></li></ul></li><li><span class="primary">Of course you want to do <code>"git pull &amp;&amp; git rebase origin/master"</code> on a regular basis.</span></li></ul></section>
+<section><h2>Git Workflow Implications</h2><ul><li><span class="primary">Using <code>"git pull"</code> and <code>"git pf"</code> you can <strong>safely</strong> have your nice linear history even when doing squashing and other advanced features.</span><ul><li><span class="primary">The caveats about rewriting history of published integration branches applies, but it&#8217;s no worse than when done with a merge.</span></li></ul></li><li><span class="primary">Of course you want to do <code>"git pull &amp;&amp; git rebase origin/master"</code> on a regular basis.</span></li></ul></section>
 <section><h2>Making &#8220;Green to Green&#8221; Development Easier</h2><p>If you&#8217;re the kind person that does TDD and likes to &#8220;checkpoint&#8221; your work every time you see The Green Bar&#8230;&#8203;</p>
 <figure class="image"><img src="http://i.giphy.com/6gh9vOu0qbQmk.gif" alt="6gh9vOu0qbQmk"></figure></section>
 <section><h2>git config --global alias.fixup &#8230;&#8203;</h2><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-o">[</span><span class="tok-nb">alias</span><span class="tok-o">]</span>
@@ -75,7 +75,7 @@ origin by rebasing.
 <span class="tok-o">[</span>mybranch 9640c0f<span class="tok-o">]</span> fixup! fixup! Build out Git Workflow section
  <span class="tok-m">1</span> file changed, <span class="tok-m">7</span> insertions<span class="tok-o">(</span>+<span class="tok-o">)</span></code></pre></section>
 <section><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git rebase -i</code></pre>
-<pre class="source"><code data-lang="bash" class="language-bash prettyprint">pick 8602f88 Build out Git Workflow section
+<pre class="source"><code data-lang="bash" class="language-bash prettyprint">pick  8602f88 Build out Git Workflow section
 fixup 09931f2 fixup! Build out Git Workflow section
 fixup 9640c0f fixup! fixup! Build out Git Workflow section
 
@@ -115,7 +115,7 @@ evernote   java       skype         hipchat
 <span class="tok-nv">$ </span>git add brews.txt casks.txt <span class="tok-o">&amp;&amp;</span> git commit -m <span class="tok-s2">&quot;Latest brews&quot;</span>
 <span class="tok-nv">$ </span>git push</code></pre>
 <p>Now if your machine gets toasted, you get a new one, etc.</p>
-<pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git clone https://myremoterepo brewsrepo <span class="tok-p">;</span> <span class="tok-nb">cd </span>brewsrepo
+<pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>git clone https://myremoterepo.git brewsrepo <span class="tok-p">;</span> <span class="tok-nb">cd </span>brewsrepo
 <span class="tok-nv">$ </span>cat brews.txt <span class="tok-p">|</span> <span class="tok-k">while</span> <span class="tok-nb">read </span>l <span class="tok-p">;</span> <span class="tok-k">do</span> brew install <span class="tok-nv">$l</span> <span class="tok-p">;</span> <span class="tok-k">done</span>
 <span class="tok-nv">$ </span>cat casks.txt <span class="tok-p">|</span> <span class="tok-k">while</span> <span class="tok-nb">read </span>l <span class="tok-p">;</span> <span class="tok-k">do</span> brew cask install <span class="tok-nv">$l</span> <span class="tok-p">;</span> <span class="tok-k">done</span></code></pre>
 <p class="smaller">See <a href="http://joshlong.com/jl/blogPost/the-version-controlled-os.html">Josh Long&#8217;s blog post</a> for a much better (and robust) write-up</p></section>
@@ -132,7 +132,8 @@ evernote   java       skype         hipchat
 <section><h2>Private Information</h2><p>What about things like SSH keys, passwords, OAuth tokens, etc.?</p>
 <p>The most basic approaches:</p>
 <ol><li><span class="primary">Recreate everything manually (regenerate tokens, revoke old ones, etc.)</span><ul><li><span class="primary">Messy, error-prone, and time-consuming. But it&#8217;s also what most everyone does.</span></li></ul></li><li><span class="primary">Store with everything else, but encrypted</span><ul><li><span class="primary">Depending on how this is done, can be subject to brute-force attacks if the attacker cares enough</span></li></ul></li><li><span class="primary">Store &#8220;specially&#8221; (thumb-drive, paper in your wallet, stripe across data-stores, etc.)</span><ul><li><span class="primary">Prevents brute-force attacks, but susceptible to getting lost. Because of its inconvenience people tend to subvert this by copying in multiple places, etc.</span></li></ul></li><li><span class="primary">Store specially and encrypt</span><ul><li><span class="primary">While the most secure (as-in &#8220;state secrets&#8221;), the hardest to deal with by far</span></li></ul></li></ol></section>
-<section><h2>Encryption and Git</h2><p>While encrypted data is just data to git, what we&#8217;d like for this use-case is for it be encrypted on its way inside the repository and unencrypted on its way out. (But only if you have the keys, of course!)</p></section>
+<section><h2>Encryption and Git</h2><p>While encrypted data is just data to git, what we&#8217;d like for this use-case is for it be encrypted on its way inside the repository and unencrypted on its way out.</p>
+<p class="smaller">(But only if you have the keys, of course!)</p></section>
 <section><p>For this example we&#8217;ll use a combination of <a href="https://www.agwa.name/projects/git-crypt/">git-crypt</a> and <a href="https://keybase.io/">Keybase.io</a> using <a href="https://www.gnupg.org/">Gnu Privacy Guard (GPG)</a>.</p></section>
 <section><pre class="source"><code data-lang="bash" class="language-bash prettyprint"><span class="tok-nv">$ </span>brew install gnupg2 keybase git-crypt
 <span class="tok-nv">$ </span>keybase login &lt;KEYBASE_USERNAME&gt; <span class="tok-c"># authorize device in blockchain</span>
@@ -147,12 +148,14 @@ evernote   java       skype         hipchat
 <p>You need to do a <code>"git crypt unlock"</code> with the appropriate credentials (the private key in this case), at which point the local workdir would have the unencrypted files.</p></section>
 <section><p>For a much deeper treatment of security, GPG, Git, etc. <a href="https://eligible.com/blog/commit-signing-with-git-hub-keybase-and-gpg/">Tyler Duzan wrote an excellent article</a>. He specifically talks about signing commits, but the tools and practices all apply.</p>
 <p>In particular, he talks about how to secure your keys much better than I&#8217;m doing here for the sake of simplicity.</p></section>
-<section><h2>Managing Dotfiles</h2><p><a href="https://dotfiles.github.io/">GitHub&#8217;s Dotfile Guide</a> is a great central source of information, as is <a href="https://github.com/webpro/awesome-dotfiles">&#8220;Awesome dotfiles&#8221;</a>.</p></section>
+<section><h2>Hosting Dotfiles</h2></section>
+<section><p><a href="https://dotfiles.github.io/">GitHub&#8217;s Dotfile Guide</a> is a great central source of information, as is <a href="https://github.com/webpro/awesome-dotfiles">&#8220;Awesome dotfiles&#8221;</a>.</p></section>
 <section><p>Just perusing the major repos of published dotfiles is sure to provide useful gems.</p>
 <p>A classic for macOS/OSX is <a href="https://mths.be/macos">Mathias Bynens' script</a> to customize virtually everything about your Mac.</p></section>
 <section><p>If you want to make <strong>your</strong> files public, <a href="https://github.com/">GitHub.com</a> is a great place.</p>
 <p>If you are not so sure, <a href="https://bitbucket.org/">BitBucket.org</a> and <a href="https://gitlab.com/">GitLab.com</a> offer free private repos.</p></section>
-<section><h2>Dotfile Managers</h2><p>&#8220;Classically&#8221; managing these kinds of things has been a matter of copying some files around and running custom shell scripts.</p>
+<section><h2>Dotfile Managers</h2></section>
+<section><p>&#8220;Classically&#8221; managing these kinds of things has been a matter of copying some files around and running custom shell scripts.</p>
 <p>Thankfully, the tooling has gotten much better&#8230;&#8203;</p></section>
 <section><p>If you&#8217;re comfortable with general-purpose system management tools like <a href="https://puppet.com/">Puppet</a> or <a href="https://www.ansible.com/">Ansible</a>, there&#8217;s lots of resources on how to use those to manage workstations as well.</p>
 <p>(Such as <a href="https://jdigger.github.io/boxen-overview-preso/">GitHub&#8217;s Boxen</a> to manage Macs with Puppet.)</p></section>
@@ -161,7 +164,7 @@ evernote   java       skype         hipchat
 <section><h2>Spring Boot</h2></section>
 <section><figure class="image"><img src="images/Spring_Boot_tweet.png" alt="Spring Boot tweet"></figure>
 <p>Amazingly, it&#8217;s gotten a lot simpler since then.</p></section>
-<section><p>Brings &#8220;convention over configuration&#8221; as far as you can imagine taking it, making it trivial to have major development and operational concerns taken care of (configuration from environment or service registry, security, monitoring &amp; management, etc.).</p></section>
+<section><p>Brings &#8220;convention over configuration&#8221; as far as you can imagine taking it, making it trivial to have major development and operational concerns taken care of (configuration from environment or service registry, security, caching, load-balancing, monitoring &amp; management, etc.)</p></section>
 <section><p>Naturally, being Spring, you can use as much or as little as you want, you can tune the heck out of it, and it integrates with <strong><em>EVERYTHING</em></strong>.</p></section>
 <section><figure class="image"><img src="images/Spring_Initializr.png" alt="Spring Initializr" height="720"></figure></section>
 <section><h2>JHipster</h2></section>
@@ -193,4 +196,5 @@ evernote   java       skype         hipchat
 <section><p>Not only can the project&#8217;s code be written in anything, but so can <a href="https://concourse.ci/implementing-resources.html">any of the &#8220;resources&#8221;</a>.</p>
 <ul><li><span class="primary">If you look at the source code, the standard ones vary from Bash to Ruby to GoLang, but there&#8217;s no reason Java or C# couldn&#8217;t be used.</span></li><li><span class="primary">On a Docker container it will simply invoke <code>"/opt/resource/check"</code>, <code>"/opt/resource/in"</code> or <code>"/opt/resource/out"</code> with communication via STDIN/STDOUT/STDERR (and some minimal environment variables)</span></li></ul></section>
 <section><p>There&#8217;s an <strong>EXCELLENT</strong> tutorial at <a href="https://github.com/starkandwayne/concourse-tutorial" class="bare">https://github.com/starkandwayne/concourse-tutorial</a></p></section>
+<section><h2>Review</h2><ol class="toc"><li><span class="primary">Git Tips</span></li><li><span class="primary">Version Controlled OS</span></li><li><span class="primary">Spring Boot</span></li><li><span class="primary">JHipster</span></li><li><span class="primary">Modern Continuous Integration</span></li></ol></section>
 <section><h2>Q &amp; A</h2></section></article><script src="build/build.js"></script></body></html>
